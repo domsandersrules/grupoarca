@@ -44,7 +44,7 @@ const NAV_ITEMS: {
     id: "dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "ventas", "taller", "logistica"],
+    roles: ["admin"],
     gradient: "from-emerald-500 to-teal-600",
     color: "text-emerald-600",
     section: "Principal",
@@ -147,7 +147,7 @@ export default function Home() {
 
   // ─── Redirección por roles (RBAC) ──────────────────────────────────────────
   useEffect(() => {
-    if (usuarioActivo) {
+    if (usuarioActivo && usuarioActivo.id) {
       const allowed = NAV_ITEMS.find((item) => item.id === activeModule)?.roles.includes(usuarioActivo.rol);
       if (!allowed) {
         if (usuarioActivo.rol === "ventas") {
