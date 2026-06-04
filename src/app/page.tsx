@@ -44,7 +44,7 @@ const NAV_ITEMS: {
     id: "dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["admin"],
+    roles: ["admin", "ventas", "taller", "logistica"],
     gradient: "from-emerald-500 to-teal-600",
     color: "text-emerald-600",
     section: "Principal",
