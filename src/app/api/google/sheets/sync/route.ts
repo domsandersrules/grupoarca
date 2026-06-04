@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const drive = getDriveClient(tokens);
     const sheets = getSheetsClient(tokens);
 
-    const spreadsheetName = "Dashboard Grupo Arca 2.0 (Datos)";
+    const spreadsheetName = "Dashboard Grupo Arca (Datos)";
     let spreadsheetId = "";
 
     // 1. Buscar si el archivo de hoja de cálculo ya existe en Google Drive

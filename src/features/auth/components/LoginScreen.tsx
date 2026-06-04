@@ -131,11 +131,14 @@ export default function LoginScreen() {
       >
         {/* Encabezado */}
         <div className="flex flex-col items-center text-center">
-          <div className="p-3.5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl text-white shadow-xl shadow-emerald-500/25 mb-4 animate-bounce duration-3000">
-            <Hammer className="w-6 h-6" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src="/logo.jpg" 
+            alt="Grupo Arca Logo" 
+            className="w-24 h-24 rounded-full object-cover bg-white p-1 border border-zinc-800 shadow-xl shadow-emerald-500/10 mb-4 animate-pulse duration-[8000ms]" 
+          />
           <h1 className="text-xl font-black text-white tracking-tight uppercase">
-            Grupo Arca <span className="text-emerald-500">2.0</span>
+            Grupo Arca
           </h1>
           <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-0.5">
             Suite de Ingeniería y Cotizaciones

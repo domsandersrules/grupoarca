@@ -228,7 +228,7 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
       <div className="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 shrink-0">
         <p className="text-[9px] text-zinc-400 text-center font-medium">
           Mostrando las últimas {Math.min(logs.length, 50)} actividades del sistema ·{" "}
-          <span className="font-black text-zinc-500">Grupo Arca 2.0</span>
+          <span className="font-black text-zinc-500">Grupo Arca</span>
         </p>
       </div>
     </div>

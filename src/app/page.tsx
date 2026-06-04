@@ -541,8 +541,8 @@ export default function Home() {
             </div>
           </div>
           <div className="text-center md:text-right space-y-0.5">
-            <p>© {new Date().getFullYear()} Grupo Arca 2.0 · Todos los derechos reservados</p>
-            <p className="text-[9px] text-zinc-300 dark:text-zinc-600">v2.0 · Suite de Ingeniería Premium · {empresa.especialidades.slice(0, 2).join(" · ")}</p>
+            <p>© {new Date().getFullYear()} Grupo Arca · Todos los derechos reservados</p>
+            <p className="text-[9px] text-zinc-300 dark:text-zinc-600">Suite de Ingeniería Premium · {empresa.especialidades.slice(0, 2).join(" · ")}</p>
           </div>
         </div>
       </footer>

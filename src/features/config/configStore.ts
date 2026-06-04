@@ -87,7 +87,7 @@ const configInicial: EmpresaConfig = {
   telefono: "744 380 9098",
   whatsapp: "+52 1 744 380 9098",
   correo: "contacto@grupoarca.com.mx",
-  logoUrl: "/logo_arca.svg", // Logo conceptual inicial
+  logoUrl: "/logo.jpg", // Logo oficial
   especialidades: ["Domos", "Pérgolas", "Canceles", "Barandales", "Portones", "Cortinas Anticiclónicas"],
   proveedorCertificado: "Extrusiones Metálicas"
 };

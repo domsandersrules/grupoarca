@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
             <body>
               <section>
                 <h1>Presentación Corporativa de Obras</h1>
-                <h2>Grupo Arca 2.0 Suite</h2>
+                <h2>Grupo Arca Suite</h2>
                 <p>Diapositivas comerciales preparadas para el cliente con fotografías de referencias de pérgolas y canceles instalados.</p>
               </section>
               <hr style="page-break-after:always;">

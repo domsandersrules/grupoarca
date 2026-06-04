@@ -127,7 +127,7 @@ export const useAuthStore = create<AuthState>()(
           usuarioRol: "admin",
           modulo: "auth",
           accion: "login",
-          detalles: "Inicialización del sistema de autenticación de Grupo Arca 2.0",
+          detalles: "Inicialización del sistema de autenticación de Grupo Arca",
           createdAt: new Date().toISOString()
         }
       ],

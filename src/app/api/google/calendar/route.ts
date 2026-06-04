@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         },
         colorId: colorMap[tipo] || "1",
         source: {
-          title: "Grupo Arca 2.0 Suite",
+          title: "Grupo Arca Suite",
           url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
         },
         attendees: attendees?.map((email: string) => ({ email })) || [],
