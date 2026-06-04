@@ -141,7 +141,7 @@ export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const { empresa, tema, sucursalActivaId, setSucursalActivaId, sucursales } = useConfigStore();
+  const { empresa, tema, sucursalActivaId, setSucursalActivaId, sucursales, actualizarEmpresa } = useConfigStore();
   const { usuarioActivo, cerrarSesion, logs, ultimaLectura } = useAuthStore();
   const { isOffline, setOfflineStatus, offlineQueue, connectionType, effectiveType, setConnectionInfo } = useGoogleStore();
 
@@ -181,8 +181,14 @@ export default function Home() {
     logistica: "from-cyan-500 to-sky-600",
   };
 
-  // ─── Montaje en cliente ──────────────────────────────────────────────────────
-  useEffect(() => { setMounted(true); }, []);
+  // ─── Montaje en cliente y Migraciones ────────────────────────────────────────
+  useEffect(() => {
+    setMounted(true);
+    // Migrar logo anterior persistido en local storage del usuario
+    if (empresa.logoUrl === "/logo_arca.svg") {
+      actualizarEmpresa({ logoUrl: "/logo.jpg" });
+    }
+  }, [empresa.logoUrl, actualizarEmpresa]);
 
   // ─── Detección de red ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -260,7 +266,11 @@ export default function Home() {
           <div className="flex items-center gap-3 shrink-0">
             {empresa.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={empresa.logoUrl} alt="Logo" className="h-8 max-w-[120px] object-contain rounded-lg" />
+              <img 
+                src={empresa.logoUrl} 
+                alt="Logo" 
+                className="h-10 w-10 rounded-full object-cover bg-white p-0.5 border border-zinc-200 dark:border-zinc-800 shadow-sm" 
+              />
             ) : (
               <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl text-white shadow-lg shadow-emerald-500/25">
                 <Hammer className="w-4 h-4" />
