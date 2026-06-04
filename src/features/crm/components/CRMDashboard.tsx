@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useCRMStore } from "../crmStore";
 import { useAuthStore } from "../../auth/authStore";
 import { useConfigStore } from "@/features/config/configStore";
@@ -23,7 +23,9 @@ export default function CRMDashboard({ onNavigate }: CRMDashboardProps) {
     clientes, 
     agregarCliente, 
     actualizarCliente, 
-    eliminarCliente 
+    eliminarCliente,
+    preselectedClienteId,
+    setPreselectedClienteId
   } = useCRMStore();
 
   const { usuarioActivo, registrarActividad } = useAuthStore();
@@ -62,6 +64,19 @@ export default function CRMDashboard({ onNavigate }: CRMDashboardProps) {
 
   // Detalles en Panel Lateral
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
+
+  // Efecto para preseleccionar cliente desde la búsqueda global
+  useEffect(() => {
+    if (preselectedClienteId) {
+      const cliente = clientes.find((c) => c.id === preselectedClienteId);
+      if (cliente) {
+        setSelectedCliente(cliente);
+        setSearchTerm(""); // Limpiar búsqueda para asegurar que el cliente sea visible
+        setStatusFilter("todos"); // Limpiar filtros de estado
+      }
+      setPreselectedClienteId(null);
+    }
+  }, [preselectedClienteId, clientes, setPreselectedClienteId]);
 
   // Validación de RFC en tiempo real
   const isRfcValido = useMemo(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import NestingSimulator from "@/features/nesting/components/NestingSimulator";
 import CRMDashboard from "@/features/crm/components/CRMDashboard";
 import QuotesDashboard from "@/features/quotes/components/QuotesDashboard";
@@ -17,6 +17,8 @@ import LoginScreen from "@/features/auth/components/LoginScreen";
 import { useConfigStore } from "@/features/config/configStore";
 import { useAuthStore } from "@/features/auth/authStore";
 import { useGoogleStore } from "@/features/google/googleStore";
+import { useCRMStore } from "@/features/crm/crmStore";
+import { useQuotesStore } from "@/features/quotes/quotesStore";
 import {
   Hammer, Layers, Users, LayoutDashboard, FileText,
   Settings, Truck, Package, Calendar, Wifi, WifiOff,
@@ -145,6 +147,139 @@ export default function Home() {
   const { usuarioActivo, cerrarSesion, logs, ultimaLectura } = useAuthStore();
   const { isOffline, setOfflineStatus, offlineQueue, connectionType, effectiveType, setConnectionInfo } = useGoogleStore();
 
+  // ─── Comando Palette (Buscador Global) ──────────────────────────────────────
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { clientes = [] } = useCRMStore();
+  const { cotizaciones = [], materiales = [] } = useQuotesStore();
+
+  const navItems = useMemo(() => {
+    return NAV_ITEMS.filter((item) => item.roles.includes(usuarioActivo?.rol || "ventas"));
+  }, [usuarioActivo?.rol]);
+
+  // Filtrar resultados de búsqueda en base al query
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    
+    const query = searchQuery.toLowerCase().trim();
+
+    // 1. Módulos permitidos
+    const matchingModules = navItems.filter(
+      (item) => item.label.toLowerCase().includes(query)
+    ).map((m) => ({
+      id: m.id,
+      type: "module",
+      title: m.label,
+      subtitle: "Módulo del sistema",
+      icon: m.icon,
+      gradient: m.gradient
+    }));
+
+    // 2. Clientes CRM
+    const matchingClientes = clientes.filter(
+      (c) => c.nombre.toLowerCase().includes(query) || (c.email && c.email.toLowerCase().includes(query))
+    ).map((c) => ({
+      id: c.id,
+      type: "client",
+      title: c.nombre,
+      subtitle: `Cliente · ${c.email || "Sin correo"}`,
+      module: "crm" as ActiveModule
+    }));
+
+    // 3. Cotizaciones/Ventas
+    const matchingQuotes = cotizaciones.filter(
+      (q) => q.folio.toLowerCase().includes(query) || q.clienteNombre.toLowerCase().includes(query)
+    ).map((q) => ({
+      id: q.id,
+      type: "quote",
+      title: `Cotización ${q.folio}`,
+      subtitle: `Venta · ${q.clienteNombre} (${q.total.toLocaleString("es-MX", { style: "currency", currency: "MXN" })})`,
+      module: "quotes" as ActiveModule
+    }));
+
+    // 4. Materiales (inventario)
+    const matchingMateriales = materiales.filter(
+      (m) => m.codigo.toLowerCase().includes(query) || m.descripcion.toLowerCase().includes(query)
+    ).map((m) => ({
+      id: m.id,
+      type: "material",
+      title: m.descripcion,
+      subtitle: `Inventario · Cód: ${m.codigo} (${m.stockActual} en stock)`,
+      module: "inventario" as ActiveModule
+    }));
+
+    return [
+      ...matchingModules,
+      ...matchingClientes,
+      ...matchingQuotes,
+      ...matchingMateriales
+    ];
+  }, [searchQuery, clientes, cotizaciones, materiales, navItems]);
+
+  useEffect(() => {
+    setSelectedResultIndex(0);
+  }, [searchQuery]);
+
+  const handleSelectResult = (result: any) => {
+    if (result.type === "module") {
+      setActiveModule(result.id);
+    } else if (result.type === "client") {
+      useCRMStore.getState().setPreselectedClienteId(result.id);
+      setActiveModule("crm");
+    } else if (result.type === "quote") {
+      useQuotesStore.getState().setPreselectedQuoteId(result.id);
+      setActiveModule("quotes");
+    } else if (result.type === "material") {
+      useQuotesStore.getState().setPreselectedMaterialId(result.id);
+      setActiveModule("inventario");
+    }
+    setIsSearchOpen(false);
+    setSearchQuery("");
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+        setSearchQuery("");
+        return;
+      }
+
+      if (!isSearchOpen) return;
+
+      if (e.key === "Escape") {
+        setIsSearchOpen(false);
+        setSearchQuery("");
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedResultIndex((prev) => (searchResults.length > 0 ? (prev + 1) % searchResults.length : 0));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedResultIndex((prev) => (searchResults.length > 0 ? (prev - 1 + searchResults.length) % searchResults.length : 0));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (searchResults.length > 0 && searchResults[selectedResultIndex]) {
+          handleSelectResult(searchResults[selectedResultIndex]);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isSearchOpen, searchResults, selectedResultIndex]);
+
+  useEffect(() => {
+    if (isSearchOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    }
+  }, [isSearchOpen]);
+
   // ─── Redirección por roles (RBAC) ──────────────────────────────────────────
   useEffect(() => {
     if (usuarioActivo && usuarioActivo.id) {
@@ -246,8 +381,7 @@ export default function Home() {
     return <LoginScreen />;
   }
 
-  // Items visibles según rol
-  const navItems = NAV_ITEMS.filter((item) => item.roles.includes(usuarioActivo.rol));
+  // (navItems ya está definido arriba de las condiciones de montaje)
 
   // Nombre de sucursal activa
   const sucursalActiva = sucursales.find((s) => s.id === sucursalActivaId);
@@ -285,13 +419,16 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Centro: Buscador decorativo (futuro) */}
+          {/* Centro: Buscador de Comando Palette (Spotlight) */}
           <div className="hidden lg:flex flex-1 max-w-sm mx-auto">
-            <div className="w-full flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 text-xs text-zinc-400 font-semibold cursor-not-allowed opacity-60">
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="w-full flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 text-xs text-zinc-400 font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+            >
               <Search className="w-3.5 h-3.5" />
               <span>Buscar en el sistema...</span>
               <span className="ml-auto font-mono text-[9px] bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded">⌘K</span>
-            </div>
+            </button>
           </div>
 
           {/* Derecha: Controles */}
@@ -559,6 +696,114 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* ═══════════════════════════════════════════════════
+          COMANDO PALETTE (BUSCADOR GLOBAL SPOTLIGHT)
+      ═══════════════════════════════════════════════════ */}
+      {isSearchOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-start justify-center pt-[15vh] px-4 animate-in fade-in duration-200"
+          onClick={() => {
+            setIsSearchOpen(false);
+            setSearchQuery("");
+          }}
+        >
+          <div 
+            className="bg-zinc-900/95 border border-zinc-800/80 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[450px] animate-in slide-in-from-top-4 duration-300"
+            onClick={(e) => e.stopPropagation()} // Evitar cerrar al hacer clic dentro
+          >
+            {/* Input de Búsqueda */}
+            <div className="relative border-b border-zinc-800 flex items-center">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar módulos, clientes, cotizaciones o inventario..."
+                className="w-full bg-transparent text-white placeholder-zinc-500 text-sm py-4 pl-12 pr-12 focus:outline-none"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-zinc-800 text-zinc-400 text-[10px] px-1.5 py-0.5 rounded font-mono select-none">
+                ESC
+              </span>
+            </div>
+
+            {/* Resultados */}
+            <div className="overflow-y-auto flex-1 p-2 space-y-0.5">
+              {searchQuery.trim() === "" ? (
+                <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2">
+                  <Search className="w-8 h-8 opacity-20" />
+                  <p className="text-xs font-bold">Escribe para iniciar la búsqueda</p>
+                  <p className="text-[10px] text-zinc-600">Busca por nombre de cliente, código de material, folio de cotización o sección.</p>
+                </div>
+              ) : searchResults.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2">
+                  <Search className="w-8 h-8 opacity-20" />
+                  <p className="text-xs font-bold">No se encontraron resultados</p>
+                  <p className="text-[10px] text-zinc-600">Prueba con otra palabra clave o código.</p>
+                </div>
+              ) : (
+                searchResults.map((result, idx) => {
+                  const isSelected = selectedResultIndex === idx;
+                  let badgeText = "MÓDULO";
+                  let badgeClass = "bg-zinc-800 text-zinc-400 border-zinc-700";
+
+                  if (result.type === "client") {
+                    badgeText = "CLIENTE";
+                    badgeClass = "bg-violet-500/10 text-violet-400 border-violet-500/20";
+                  } else if (result.type === "quote") {
+                    badgeText = "VENTA";
+                    badgeClass = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+                  } else if (result.type === "material") {
+                    badgeText = "INVENTARIO";
+                    badgeClass = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+                  }
+
+                  return (
+                    <button
+                      key={`${result.type}-${result.id}`}
+                      onClick={() => handleSelectResult(result)}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all ${
+                        isSelected 
+                          ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/25 cursor-pointer" 
+                          : "text-zinc-300 hover:bg-zinc-800/40 cursor-pointer"
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">{result.title}</span>
+                        <span className={`text-[10px] ${isSelected ? "text-emerald-100" : "text-zinc-500"}`}>
+                          {result.subtitle}
+                        </span>
+                      </div>
+                      <span className={`text-[8px] font-black tracking-wider px-1.5 py-0.5 rounded border ${
+                        isSelected ? "bg-white/20 text-white border-white/10" : badgeClass
+                      }`}>
+                        {badgeText}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer de Atajos */}
+            <div className="flex items-center gap-4 px-4 py-2 border-t border-zinc-800 text-[9px] text-zinc-500 font-medium select-none shrink-0 bg-zinc-950/20">
+              <span className="flex items-center gap-1">
+                <span className="bg-zinc-800 px-1 py-0.5 rounded border border-zinc-700 font-mono text-[8px] text-zinc-400">↑↓</span>
+                Navegar
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700 font-mono text-[8px] text-zinc-400">Enter</span>
+                Seleccionar
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700 font-mono text-[8px] text-zinc-400">Esc</span>
+                Cerrar
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

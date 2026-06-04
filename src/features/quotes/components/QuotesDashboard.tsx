@@ -96,7 +96,9 @@ export default function QuotesDashboard() {
     calcularConceptoNesting,
     agregarFotoEvidenciaArea,
     preselectedClienteId,
-    setPreselectedClienteId
+    setPreselectedClienteId,
+    preselectedQuoteId,
+    setPreselectedQuoteId
   } = useQuotesStore();
 
   const { clientes } = useCRMStore();
@@ -118,6 +120,19 @@ export default function QuotesDashboard() {
     cotizaciones.find((q) => q.id === selectedQuoteId) || null,
     [cotizaciones, selectedQuoteId]
   );
+
+  // Efecto para preseleccionar cotización desde la búsqueda global
+  useEffect(() => {
+    if (preselectedQuoteId) {
+      const cotiz = cotizaciones.find((q) => q.id === preselectedQuoteId);
+      if (cotiz) {
+        setSelectedQuoteId(cotiz.id);
+        setSearchTerm(""); // Limpiar búsqueda para asegurar visibilidad
+        setStatusFilter("todos"); // Limpiar filtros de estado
+      }
+      setPreselectedQuoteId(null);
+    }
+  }, [preselectedQuoteId, cotizaciones, setPreselectedQuoteId]);
 
   // Obtener orden de taller y entrega asociadas a la cotización seleccionada (para seguimiento de ventas)
   const trackingInfo = useMemo(() => {

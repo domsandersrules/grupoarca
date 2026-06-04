@@ -40,6 +40,10 @@ interface QuotesState {
   ) => void;
   preselectedClienteId: string | null;
   setPreselectedClienteId: (id: string | null) => void;
+  preselectedQuoteId: string | null;
+  setPreselectedQuoteId: (id: string | null) => void;
+  preselectedMaterialId: string | null;
+  setPreselectedMaterialId: (id: string | null) => void;
 }
 
 // Catálogo maestro de materiales base para instalación de cancelería
@@ -356,6 +360,10 @@ export const useQuotesStore = create<QuotesState>()(
       materiales: catalogoMateriales,
       preselectedClienteId: null,
       setPreselectedClienteId: (id) => set({ preselectedClienteId: id }),
+      preselectedQuoteId: null,
+      setPreselectedQuoteId: (id) => set({ preselectedQuoteId: id }),
+      preselectedMaterialId: null,
+      setPreselectedMaterialId: (id) => set({ preselectedMaterialId: id }),
 
       agregarCotizacion: (nuevaQuote) => set((state) => {
         const nextFolioNum = state.cotizaciones.length + 1;

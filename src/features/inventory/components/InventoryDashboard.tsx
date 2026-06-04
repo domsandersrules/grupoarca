@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuotesStore } from "../../quotes/quotesStore";
 import { MaterialCatalogo, ProveedorHistorico } from "../../quotes/types";
 import { useAuthStore } from "../../auth/authStore";
@@ -15,7 +15,8 @@ import {
 export default function InventoryDashboard() {
   const { 
     materiales, agregarMaterial, actualizarMaterial, 
-    registrarCompraProveedor, actualizarCompraProveedor 
+    registrarCompraProveedor, actualizarCompraProveedor,
+    preselectedMaterialId, setPreselectedMaterialId
   } = useQuotesStore();
   const { usuarioActivo } = useAuthStore();
 
@@ -23,6 +24,20 @@ export default function InventoryDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"todos" | "aluminio" | "vidrio" | "herraje" | "insumo">("todos");
   const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(materiales[0]?.id || null);
+
+  // Efecto para preseleccionar material desde la búsqueda global
+  useEffect(() => {
+    if (preselectedMaterialId) {
+      const mat = materiales.find((m) => m.id === preselectedMaterialId);
+      if (mat) {
+        setSelectedMaterialId(mat.id);
+        setSearchTerm(""); // Limpiar búsqueda para asegurar visibilidad
+        setActiveTab("todos"); // Limpiar filtros de categoría
+        setIsEditingCard(false); // Cancelar edición de tarjeta si estaba abierta
+      }
+      setPreselectedMaterialId(null);
+    }
+  }, [preselectedMaterialId, materiales, setPreselectedMaterialId]);
 
   // Estados de los Formularios Modales
   const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);

@@ -9,6 +9,8 @@ interface CRMState {
   agregarCliente: (cliente: Omit<Cliente, "id" | "createdAt">) => string;
   actualizarCliente: (id: string, cliente: Partial<Cliente>) => void;
   eliminarCliente: (id: string) => void;
+  preselectedClienteId: string | null;
+  setPreselectedClienteId: (id: string | null) => void;
 }
 
 // Datos de prueba iniciales para simular el CRM
@@ -77,6 +79,8 @@ export const useCRMStore = create<CRMState>()(
   persist(
     (set) => ({
       clientes: clientesIniciales,
+      preselectedClienteId: null,
+      setPreselectedClienteId: (id) => set({ preselectedClienteId: id }),
       agregarCliente: (nuevoCliente) => {
         const clienteId = `cli-${Date.now()}`;
         
