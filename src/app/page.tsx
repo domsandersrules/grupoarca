@@ -303,20 +303,23 @@ export default function Home() {
               className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all ${
                 isOffline
                   ? "bg-red-50 dark:bg-red-950/20 text-red-600 border-red-200 dark:border-red-900/50 hover:bg-red-100"
-                  : connectionType === "cellular"
-                    ? "bg-sky-50 dark:bg-sky-950/20 text-sky-600 border-sky-200 dark:border-sky-900/50"
-                    : "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-100"
+                  : "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-100"
               }`}
               title={isOffline ? "Offline. Clic para reconectar" : "Online. Clic para simular Offline."}
             >
               {isOffline ? (
-                <><WifiOff className="w-3.5 h-3.5 animate-pulse" />OFFLINE
+                <>
+                  <WifiOff className="w-3.5 h-3.5 animate-pulse" />
+                  <span>OFFLINE</span>
                   {offlineQueue.length > 0 && (
                     <span className="flex items-center justify-center min-w-4 h-4 px-1 bg-red-600 text-white rounded-full text-[8px] font-black">{offlineQueue.length}</span>
                   )}
                 </>
               ) : (
-                <><Wifi className="w-3.5 h-3.5" />{connectionType === "cellular" ? `CEL ${effectiveType ?? ""}` : connectionType === "wifi" ? "WiFi" : "LAN"}</>
+                <>
+                  <Wifi className="w-3.5 h-3.5" />
+                  <span>ONLINE</span>
+                </>
               )}
             </button>
 
